@@ -39,9 +39,12 @@ public class FileDownloadWorker extends BaseDownloadWorker {
     protected Object doInBackground(String... params) {
         if (mException != null)
             return null;
-
-        String path = params[0];
-        String fileName = params[1];
+        String path = null;
+        String fileName = "default";
+            path = params[0];
+        if (params.length >= 2) {
+            fileName = params[1];
+        }
         try {
             URL url = new URL(path);
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();

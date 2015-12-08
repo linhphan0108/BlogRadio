@@ -34,10 +34,13 @@ import java.util.Map;
  */
 public class BaseDownloadWorker extends AsyncTask<String, Integer, Object> {
     protected final WeakReference<Context> mContext;
+
     protected Method mType = Method.GET;//the method of request whether POST or GET, default value is GET
     protected Map<String, String> mParams;
-    protected DownloadCallback mCallback;
     protected IParser mParser;
+
+    private DownloadCallback mCallback;
+    private int mRequestCode = DownloadCallback.UNKNOWN_REQUEST_CODE;
 
     //progress dialog
     protected ProgressDialog mProgressbar;
@@ -60,6 +63,51 @@ public class BaseDownloadWorker extends AsyncTask<String, Integer, Object> {
             mProgressbar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             mProgressbar.setCancelable(false);
         }
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+
+        if (!NetworkUtil.isNetworkConnected(mContext.get())) {//determine whether internet connection is available
+            this.mException = new NoInternetConnectionException();
+            return;
+        }
+
+        if (mContext.get() != null && mProgressbar != null) {
+            mProgressbar.show();
+        }
+    }
+
+    @Override
+    protected Object doInBackground(String... params) {
+        return null;
+    }
+
+
+    @Override
+    protected void onPostExecute(Object o) {
+        super.onPostExecute(o);
+        if (mException == null)
+            mCallback.onDownloadSuccessfully(o, mRequestCode);
+        else {
+            mCallback.onDownloadFailed(mException, mRequestCode);
+        }
+        if (mProgressbar != null && mProgressbar.isShowing())
+            mProgressbar.dismiss();
+
+    }
+
+    @Override
+    protected void onProgressUpdate(Integer... values) {
+        super.onProgressUpdate(values);
+        if (mProgressbar != null && mProgressbar.isShowing())
+            mProgressbar.setProgress(values[0]);
+    }
+
+    public BaseDownloadWorker setRequestCode(int requestCode){
+        this.mRequestCode = requestCode;
+        return this;
     }
 
     public BaseDownloadWorker setType(Method type) {
@@ -115,46 +163,6 @@ public class BaseDownloadWorker extends AsyncTask<String, Integer, Object> {
         mProgressbar.setProgress(0);
 
         return this;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-
-        if (!NetworkUtil.isNetworkConnected(mContext.get())) {//determine whether internet connection is available
-            this.mException = new NoInternetConnectionException();
-            return;
-        }
-
-        if (mContext.get() != null && mProgressbar != null) {
-            mProgressbar.show();
-        }
-    }
-
-    @Override
-    protected Object doInBackground(String... params) {
-        return null;
-    }
-
-
-    @Override
-    protected void onPostExecute(Object o) {
-        super.onPostExecute(o);
-        if (mException == null)
-            mCallback.onDownloadSuccessfully(o);
-        else {
-            mCallback.onDownloadFailed(mException);
-        }
-        if (mProgressbar != null && mProgressbar.isShowing())
-            mProgressbar.dismiss();
-
-    }
-
-    @Override
-    protected void onProgressUpdate(Integer... values) {
-        super.onProgressUpdate(values);
-        if (mProgressbar != null && mProgressbar.isShowing())
-            mProgressbar.setProgress(values[0]);
     }
 
     /**

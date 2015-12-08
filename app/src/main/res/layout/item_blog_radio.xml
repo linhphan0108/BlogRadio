@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="110dp"
+    android:orientation="horizontal"
+    android:padding="5dp">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/img_poster"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="5dp"
+            android:layout_marginEnd="5dp"
+            android:scaleType="centerCrop"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginLeft="5dp"
+        android:layout_marginStart="5dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/linear_layout_info_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_alignParentTop="true">
+
+            <TextView
+                android:id="@+id/txt_blog_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:maxLines="1"/>
+
+            <TextView
+                android:id="@+id/txt_blog_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="2"/>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/relative_layout_buttons_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="60dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingLeft="0dp"
+            android:paddingStart="0dp"
+            android:paddingRight="5dp"
+            android:paddingEnd="5dp"
+            android:layout_gravity="bottom"
+            android:layout_below="@id/linear_layout_info_group">
+            <ImageButton
+                android:id="@+id/img_btn_pause"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:padding="5dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/circular_background"
+                android:src="@drawable/btn_pause"
+                android:scaleType="centerInside"
+                android:visibility="visible"/>
+
+            <ImageButton
+                android:id="@+id/img_btn_play"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:padding="5dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/circular_background"
+                android:src="@drawable/btn_play"
+                android:scaleType="centerInside"
+                android:visibility="invisible"/>
+
+            <ImageButton
+                android:id="@+id/img_btn_download"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
+                android:padding="5dp"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@id/img_btn_play"
+                android:layout_toEndOf="@id/img_btn_play"
+                android:background="@drawable/circular_background"
+                android:scaleType="centerInside"
+                android:src="@drawable/btn_download"/>
+        </RelativeLayout>
+    </RelativeLayout>
+</LinearLayout>

@@ -8,7 +8,7 @@ import org.jsoup.select.Elements;
 /**
  * Created by linhphan on 12/7/15.
  */
-public class SamplePaser implements IParser {
+public class JSoupDirectBlogParser implements IParser {
     @Override
     public Object parse(Object data) {
         String url = null;
