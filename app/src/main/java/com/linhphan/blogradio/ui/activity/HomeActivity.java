@@ -1,6 +1,7 @@
 package com.linhphan.blogradio.ui.activity;
 
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
@@ -10,6 +11,8 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
@@ -21,6 +24,7 @@ import android.widget.Toast;
 import com.linhphan.androidboilerplate.api.FileDownloadWorker;
 import com.linhphan.androidboilerplate.api.JSoupDownloadWorker;
 import com.linhphan.androidboilerplate.callback.DownloadCallback;
+import com.linhphan.androidboilerplate.util.AppUtil;
 import com.linhphan.androidboilerplate.util.Logger;
 import com.linhphan.blogradio.R;
 import com.linhphan.blogradio.api.paser.JSoupDirectBlogParser;
@@ -43,8 +47,6 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
     private int mCurrentPageIndex = 1;
     private boolean mIsLoadingMore = false;
     private String HOST = "http://blogradio.vn/blog-radio/287?";
-
-    private Handler mBaseHandler;
 
     private MusicService mMusicSrv;
 
@@ -113,10 +115,20 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.home, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+                break;
+
+            case R.id.action_volume:
+                AppUtil.getInstance().openVolumeSystem(this);
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -144,9 +156,15 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             case GET_DIRECT_URL_TO_DOWNLOAD_REQUEST_CODE:
                 if (data instanceof String) {
                     String url = (String) data;
-                    FileDownloadWorker worker = new FileDownloadWorker(this, true, this);
+                    final FileDownloadWorker worker = new FileDownloadWorker(this, true, this);
                     worker.setRequestCode(DOWNLOAD_FILE_REQUEST_CODE)
                             .setHorizontalProgressbar()
+                            .setDialogCancelCallback("Hide", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    worker.showNotificationProgress();
+                                }
+                            })
                             .execute(url);// TODO: 12/8/15 need to pass a file name for the file will be downloaded.
                 }
                 break;
