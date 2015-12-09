@@ -125,6 +125,18 @@ public class BaseDownloadWorker extends AsyncTask<String, Integer, Object> {
         return this;
     }
 
+    /**
+     * the progressbar will be cancelable when user touches anywhere outside the dialog if this method is called.
+     * default is false.
+     * @return the current instance.
+     */
+    public BaseDownloadWorker setDialogCancelable(){
+        if (mProgressbar != null){
+            mProgressbar.setCancelable(true);
+        }
+        return this;
+    }
+
     public BaseDownloadWorker setDialogCancelCallback(String buttonName, DialogInterface.OnClickListener callback) {
         if (mProgressbar != null) {
             mProgressbar.setButton(DialogInterface.BUTTON_NEGATIVE, buttonName, callback);

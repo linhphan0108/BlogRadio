@@ -36,6 +36,7 @@ public class JSoupDownloadWorker extends BaseDownloadWorker {
             result = mParser.parse(document);
         } catch (IOException e) {
             e.printStackTrace();
+            mException = e;
         }
         return result;
     }

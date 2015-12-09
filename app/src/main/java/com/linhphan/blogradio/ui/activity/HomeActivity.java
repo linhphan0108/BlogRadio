@@ -6,19 +6,22 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.linhphan.androidboilerplate.api.FileDownloadWorker;
@@ -26,19 +29,32 @@ import com.linhphan.androidboilerplate.api.JSoupDownloadWorker;
 import com.linhphan.androidboilerplate.callback.DownloadCallback;
 import com.linhphan.androidboilerplate.util.AppUtil;
 import com.linhphan.androidboilerplate.util.Logger;
+import com.linhphan.androidboilerplate.util.MathUtil;
+import com.linhphan.androidboilerplate.util.TimerUtil;
 import com.linhphan.blogradio.R;
 import com.linhphan.blogradio.api.paser.JSoupDirectBlogParser;
 import com.linhphan.blogradio.api.paser.JSoupBlogListParser;
 import com.linhphan.blogradio.data.BlogRadioModel;
 import com.linhphan.blogradio.service.MusicService;
 import com.linhphan.blogradio.ui.adapter.BlogRadioAdapter;
+import com.linhphan.blogradio.util.MessageCode;
+
 
 import java.util.ArrayList;
 
-public class HomeActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, DownloadCallback, BlogRadioAdapter.OnItemClickedCallback, AbsListView.OnScrollListener {
 
+
+public class HomeActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, DownloadCallback, BlogRadioAdapter.OnItemClickedCallback,
+        AbsListView.OnScrollListener, SeekBar.OnSeekBarChangeListener, Handler.Callback {
+
+    private String HOST = "http://blogradio.vn/blog-radio/287?";
+
+    private FloatingActionButton mFab;
     private ListView mLvBlogRadioList;
-    FloatingActionButton mFab;
+    private SeekBar mSb;
+    private TextView mTxtElapsedTime;
+    private TextView mTxtDuration;
+
 
     private BlogRadioAdapter mAdapter;
 
@@ -46,9 +62,9 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
     private int mCurrentPlayedBlogIndex = -1;
     private int mCurrentPageIndex = 1;
     private boolean mIsLoadingMore = false;
-    private String HOST = "http://blogradio.vn/blog-radio/287?";
 
     private MusicService mMusicSrv;
+    private Handler mBaseHandler;
 
     protected ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -56,7 +72,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             if (mMusicSrv == null)
                 mMusicSrv = ((MusicService.MusicBinder) service).getMusicService();
             mMusicSrv.onBind();
-//            mMusicSrv.setupHandler(mBaseHandler);
+            mMusicSrv.setupHandler(mBaseHandler);
         }
 
         @Override
@@ -82,6 +98,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        mBaseHandler = new Handler(this);
 
         setupActionbar();
         setupFloatingButton();
@@ -130,8 +147,27 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             case R.id.action_volume:
                 AppUtil.getInstance().openVolumeSystem(this);
                 break;
+
+            case R.id.action_about_me:
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    //==================== seek bar's callback =====================================================
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        seekTo(seekBar.getProgress());
     }
 
     //==================== async task download callback===========================================
@@ -159,10 +195,11 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
                     final FileDownloadWorker worker = new FileDownloadWorker(this, true, this);
                     worker.setRequestCode(DOWNLOAD_FILE_REQUEST_CODE)
                             .setHorizontalProgressbar()
+                            .setDialogCancelable()
                             .setDialogCancelCallback("Hide", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    worker.showNotificationProgress();
+                                    dialog.dismiss();
                                 }
                             })
                             .execute(url);// TODO: 12/8/15 need to pass a file name for the file will be downloaded.
@@ -208,12 +245,24 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
     //==================== list view's callback ====================================================
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+        Toast.makeText(this, "clicked position "+ position, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mFab.getLayoutParams();
+        switch (scrollState){
+            case SCROLL_STATE_TOUCH_SCROLL:
+                if (mFab.getTranslationY() < params.bottomMargin + mFab.getHeight()){
+                    mFab.animate().cancel();
+                    mFab.animate().translationY(params.bottomMargin + mFab.getHeight()).setDuration(200);
+                }
+                break;
 
+            case SCROLL_STATE_IDLE:
+                mFab.animate().cancel();
+                mFab.animate().translationY(mFab.getScrollY());
+        }
     }
 
     @Override
@@ -243,10 +292,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onPauseButtonClicked(int position, String url) {
-        if (mMusicSrv != null) {
-            mMusicSrv.pause();
-        }
-        mFab.setVisibility(View.INVISIBLE);
+        pause();
     }
 
     @Override
@@ -257,13 +303,69 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
                 .execute(url);
     }
 
+    //===================== handler's callback ==============================================
+    @Override
+    public boolean handleMessage(Message msg) {
+        if (msg.what == MessageCode.SONG_CHANGED.ordinal()) {
+            return true;
+        } else if (msg.what == MessageCode.TIMING.ordinal()) {
+            String data = (String) msg.obj;
+            if (data != null && !data.isEmpty()) {
+                String[] arr = data.split("-");
+                int position = Integer.parseInt(arr[0]);
+                int duration = Integer.parseInt(arr[1]);
+                mSb.setProgress(MathUtil.calculatePercentage(position, duration));
+                mTxtElapsedTime.setText(TimerUtil.convertTime2String(position));
+                mTxtDuration.setText(TimerUtil.convertTime2String(duration));
+            }
+            return true;
+
+        } else if (msg.what == MessageCode.BUFFERING.ordinal()) {
+            mSb.setSecondaryProgress((Integer) msg.obj);
+            return true;
+
+
+        } else if (msg.what == MessageCode.PAUSED.ordinal()) {
+            return true;
+
+
+        } else if (msg.what == MessageCode.PLAYING.ordinal()) {
+            return true;
+
+
+        } else if (msg.what == MessageCode.DESTROYED.ordinal()) {
+            finish();
+            return true;
+        }
+        return false;
+    }
+
+    //===================== media player's method ==============================================
+    public void seekTo(int position) {
+        if (mMusicSrv != null)
+            mMusicSrv.seekTo(position);
+    }
+
+    public void pause() {
+        if (mMusicSrv != null) {
+            mMusicSrv.pause();
+        }
+        mFab.setVisibility(View.INVISIBLE);
+    }
+
+
+    //===================== other methods ==============================================
     private String getTag() {
         return getClass().getName();
     }
 
     private void getWidgets() {
         mLvBlogRadioList = (ListView) findViewById(R.id.lv_blog_radio_list);
+        mSb = (SeekBar) findViewById(R.id.sb);
+        mTxtElapsedTime = (TextView) findViewById(R.id.txt_elapsed_time);
+        mTxtDuration = (TextView) findViewById(R.id.txt_duration);
 
+        mLvBlogRadioList.setEmptyView(findViewById(R.id.txt_empty));
         mAdapter = new BlogRadioAdapter(mBlogList, this);
         mLvBlogRadioList.setAdapter(mAdapter);
     }
@@ -271,6 +373,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
     private void registerEventHandler() {
         mLvBlogRadioList.setOnItemClickListener(this);
         mLvBlogRadioList.setOnScrollListener(this);
+        mSb.setOnSeekBarChangeListener(this);
     }
 
     private void setupActionbar() {

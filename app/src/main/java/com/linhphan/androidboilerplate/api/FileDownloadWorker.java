@@ -22,26 +22,17 @@ import java.net.URL;
  */
 public class FileDownloadWorker extends BaseDownloadWorker {
 
-    private boolean mIsShowNotificationProgress;
-
-    /**
-     * the notification progress will be showed if this method is called.
-     */
-    public void showNotificationProgress(){
-        mIsShowNotificationProgress = true;
-    }
-
     public FileDownloadWorker(Context mContext, boolean isShowDialog, DownloadCallback mCallback) {
-        super(mContext,isShowDialog, mCallback);
+        super(mContext, isShowDialog, mCallback);
     }
 
     @Override
     protected Object doInBackground(String... params) {
         if (mException != null)
             return null;
-        String path = null;
+        String path;
         String fileName = "default";
-            path = params[0];
+        path = params[0];
         if (params.length >= 2) {
             fileName = params[1];
         }
@@ -71,8 +62,17 @@ public class FileDownloadWorker extends BaseDownloadWorker {
             int count;
             while ((count = inputStream.read(buffer)) != -1) {
                 total += count;
-                // publishing the progress....
-                publishProgress((int)(total*100/contentLength));
+
+                int percent = (int) (total * 100 / contentLength);
+                if (mProgressbar.isShowing()) {// publishing the progress....
+                    publishProgress(percent);
+                } else {//show the progress in notification bar.
+                    if (percent < 100) {
+                        showNotificationProgress(mContext.get(), "Downloading...", percent);
+                    } else {
+                        showNotificationProgress(mContext.get(), "Completed!", percent);
+                    }
+                }
                 bufferedOutputStream.write(buffer, 0, count);
             }
 
@@ -95,15 +95,6 @@ public class FileDownloadWorker extends BaseDownloadWorker {
 
     @Override
     protected void onProgressUpdate(Integer... values) {
-        if (mIsShowNotificationProgress){
-            int percent = values[0];
-            if (percent < 100) {
-                showNotificationProgress(mContext.get(), "Downloading...", values[0]);
-            }else{
-                showNotificationProgress(mContext.get(), "Completed!", values[0]);
-            }
-        }else {
-            super.onProgressUpdate(values);
-        }
+        super.onProgressUpdate(values);
     }
 }

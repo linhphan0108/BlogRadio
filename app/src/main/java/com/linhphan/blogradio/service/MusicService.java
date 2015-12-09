@@ -164,7 +164,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     //================== audio manager callback ====================================================
     @Override
-    public void onAudioFocusChange(int focusChange) {
+    public void onAudioFocusChange(int focusChange) {// TODO: 12/9/15 need to review here.
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
                 Logger.e("audio focus", "AUDIOFOCUS_GAIN");

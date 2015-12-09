@@ -2,7 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_volume"
-        android:icon="@android:drawable/btn_plus"
+        android:icon="@drawable/ic_action_volume"
         android:title="Volume"
+        app:showAsAction="always" />
+
+    <item android:id="@+id/action_about_me"
+        android:icon="@drawable/ic_action_info"
+        android:title="About Me"
         app:showAsAction="always" />
 </menu>
